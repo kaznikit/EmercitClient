@@ -19,11 +19,12 @@ namespace EmercitClient
     public void ConnectionChanged(ConnectionArgs args)
     {
       if (args.State)
-        Console.Write($"Соединение с контроллером {args.Serial} " +
+        Logger.LogInformation($"Соединение с контроллером {args.Serial} " +
                       $"установлено [{args.Endpoint}, {args.Protocol.ToString()}]. " +
                       $"Версия ПО: {args.Revision}");
+        
       else
-        Console.WriteLine($"Соединение с контроллером {args.Serial} разорвано");
+        Logger.LogInformation($"Соединение с контроллером {args.Serial} разорвано");
     }
 
     public uint GetSecondsUntilNextConnection(uint controllerSerial)
@@ -34,12 +35,13 @@ namespace EmercitClient
 
       //для остальных контроллеров активируется режим работы по расписанию
       //контроллер подключается каждый час
-      return 3600;
+      Logger.LogInformation($"Вызвана функция получения расписания. {controllerSerial}");
+      return 60;//3600;
     }
 
     public void ProcessData(Archive archive)
     {
-      Console.WriteLine($"Получены данные от {archive.Controller}." +
+      Logger.LogInformation($"Получены данные от {archive.Controller}." +
                                         $"Данные {archive.Data.Count}, " +
                                         $"статусы {archive.States.Count}, " +
                                         $"оповещения: {archive.Notifications.Count}.");
@@ -47,7 +49,7 @@ namespace EmercitClient
       //обработка данных от контроллера
       foreach (var data in archive.Data)
       {
-        Console.WriteLine($"Данные: адрес {data.Mac}/{data.ExtId}/{data.Point}/{data.Sequence}," +
+        Logger.LogInformation($"Данные: адрес {data.Mac}/{data.ExtId}/{data.Point}/{data.Sequence}," +
                           $"значение {data.Value} " +
                           $"от {data.Time}. Номер запроса {data.RequestId}.");
       }
@@ -57,7 +59,7 @@ namespace EmercitClient
       //можно получить несколько разных статусов
       foreach (var state in archive.States)
       {
-        Console.WriteLine($"Получен статус {state.Value} от сигнала" +
+        Logger.LogInformation($"Получен статус {state.Value} от сигнала" +
                           $"{state.Mac}/{state.ExtId}/{state.Point}/{state.Sequence}: " +
                           $"{(state.Enabled ? "активен" : "не активен")}");
       }
