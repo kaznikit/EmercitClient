@@ -10,6 +10,11 @@ namespace EmercitTestConsole
   {
     EmercitAdapterService adapterService = new EmercitAdapterService();
     
+    public void SendData()
+    {
+      ier ier = new ier();
+      info info = new info();
+    }
   
   }
 }
