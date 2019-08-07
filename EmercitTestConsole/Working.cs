@@ -43,6 +43,7 @@ namespace EmercitClient
         exchangeServer.UnlockController(controller.Id);
         logger.LogInformation($"Контроллер {controller.Id} добавлен и разблокирован.");
       }
+
       //exchangeServer.KeyStore.AddOrUpdate(2120001, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA1", false);
       //exchangeServer.KeyStore.AddOrUpdate(2120002, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2", false);
       //exchangeServer.KeyStore.AddOrUpdate(2120003, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA3", false);
