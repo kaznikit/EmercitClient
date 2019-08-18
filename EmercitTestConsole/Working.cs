@@ -11,8 +11,8 @@ namespace EmercitClient
   public class Working
   {
     string connectionString = ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
-    string write_sqlQuery = ConfigurationManager.AppSettings["Write_SQLQuery"];
-    string read_sqlQuery = ConfigurationManager.AppSettings["Read_SQLQuery"];
+    public static string write_sqlQuery = ConfigurationManager.AppSettings["Write_SQLQuery"];
+    public static string read_sqlQuery = ConfigurationManager.AppSettings["Read_SQLQuery"];
 
     public Logger logger = new Logger();
 
@@ -34,7 +34,8 @@ namespace EmercitClient
 
       logger.LogInformation("Добавление контроллеров в хранилище");
 
-      DatabaseWorker.Instance.Connect(connectionString, logger);
+      DatabaseWorker.Instance.Initialize(connectionString, logger);
+      DatabaseWorker.Instance.Connect();
       var controllers = DatabaseWorker.Instance.ReadData(read_sqlQuery);
 
       foreach(var controller in controllers)

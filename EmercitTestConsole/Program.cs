@@ -1,7 +1,7 @@
 ﻿namespace EmercitClient
 {
   class Program
-  { 
+  {
     static void Main(string[] args)
     {
       //XmlSerializer formatter = new XmlSerializer(typeof(ier));
@@ -15,8 +15,12 @@
 
       //string jss = JsonConvert.SerializeObject(obj);  
 
+
+
+
+
       Working working = new Working();
       working.Initialize();
     }   
-  }
+}
 }

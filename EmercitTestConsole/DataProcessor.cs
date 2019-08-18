@@ -3,7 +3,8 @@ using MiradaStdSDK;
 using MiradaStdSDK.Enums;
 using MiradaStdSDK.Interfaces;
 using MiradaStdSDK.Models;
-using System;               
+using Newtonsoft.Json;
+using System;
 
 namespace EmercitClient
 {
@@ -46,6 +47,25 @@ namespace EmercitClient
                                         $"статусы {archive.States.Count}, " +
                                         $"оповещения: {archive.Notifications.Count}.");
 
+
+      try
+      {
+        //create json string
+        string json = JsonConvert.SerializeObject(archive);
+        //write to database
+        if (!DatabaseWorker.Instance.isConnected)
+        {
+          DatabaseWorker.Instance.Connect();
+        }
+        string result = DatabaseWorker.Instance.WriteToDb(Working.write_sqlQuery, json);
+        Logger.LogInformation($"Json writting result = {result}.");
+      }
+      catch (Exception ex)
+      {
+        Logger.LogError($"Json parse error. {ex.Message}");
+      }
+
+
       //обработка данных от контроллера
       foreach (var data in archive.Data)
       {
@@ -54,9 +74,9 @@ namespace EmercitClient
                           $"от {data.Time}. Номер запроса {data.RequestId}.");
       }
 
-      //обработка статусов от контроллера
-      //получение статуса говорит о неработоспособности сигнала
-      //можно получить несколько разных статусов
+      ////обработка статусов от контроллера
+      ////получение статуса говорит о неработоспособности сигнала
+      ////можно получить несколько разных статусов
       foreach (var state in archive.States)
       {
         Logger.LogInformation($"Получен статус {state.Value} от сигнала" +

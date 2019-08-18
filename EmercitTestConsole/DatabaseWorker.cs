@@ -17,13 +17,21 @@ namespace EmercitClient
     public static DatabaseWorker Instance { get; } = new DatabaseWorker();
 
     /// <summary>
-    /// connect to the database
+    /// initialize required parameters
     /// </summary>
-    /// <param name="connectionString">connection string</param>
-    public void Connect(string connectionString, Logger logger)
+    /// <param name="connectionString"></param>
+    /// <param name="logger"></param>
+    public void Initialize(string connectionString, Logger logger)
     {
       this.logger = logger;
       this.connectionString = connectionString;
+    }
+
+    /// <summary>
+    /// connect to the database
+    /// </summary>
+    public void Connect()
+    {                                         
       try
       {
         conn = new NpgsqlConnection(connectionString);
@@ -60,6 +68,7 @@ namespace EmercitClient
       {
         using (var cmd = new NpgsqlCommand(query, conn))
         {
+          logger.LogInformation($"Write query = {query}");
           cmd.Parameters.Add(new NpgsqlParameter("d", NpgsqlDbType.Jsonb) { Value = jsonData });
           result = cmd.ExecuteNonQuery().ToString();
         }
@@ -99,6 +108,7 @@ namespace EmercitClient
               });
             }
           }
+          reader.Close();
         }
       }
       catch(Exception ex)
