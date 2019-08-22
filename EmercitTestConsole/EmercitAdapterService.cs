@@ -11,6 +11,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Security.Policy;
 using System.Web.Services;
 using System.Web.Services.Protocols;
 using System.Xml.Serialization;
@@ -31,9 +32,9 @@ public partial class EmercitAdapterService : System.Web.Services.Protocols.SoapH
   private System.Threading.SendOrPostCallback newIEROperationCompleted;
 
   /// <remarks/>
-  public EmercitAdapterService()
+  public EmercitAdapterService(string url)
   {
-    this.Url = "http://192.168.144.137:8181/cxf/EmercitAdapterService";
+    this.Url = url;//"http://192.168.144.137:8181/cxf/EmercitAdapterService";
   }
 
   /// <remarks/>

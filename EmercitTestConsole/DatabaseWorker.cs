@@ -1,5 +1,4 @@
-﻿using EmercitTestConsole;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using MiradaStdSDK.Interfaces;
 using Npgsql;
 using NpgsqlTypes;
@@ -63,21 +62,95 @@ namespace EmercitClient
     /// <returns></returns>
     public string WriteToDb(string query, string jsonData)
     {
-      string result = "";
+      NpgsqlDataReader result = null;
       try
       {
+        var response = "";
         using (var cmd = new NpgsqlCommand(query, conn))
         {
           logger.LogInformation($"Write query = {query}");
           cmd.Parameters.Add(new NpgsqlParameter("d", NpgsqlDbType.Jsonb) { Value = jsonData });
-          result = cmd.ExecuteNonQuery().ToString();
+          result = cmd.ExecuteReader();
+          if (result.HasRows)
+          {
+            if (result.Read())
+            {
+              response = ConvertFromDBVal<string>(result["text"]);
+            }
+            else
+            {
+              logger.LogError("Response is empty");
+            }
+          }
+          else
+          {
+            logger.LogError("Ответ от бд не получен.");
+            return null;
+          }
+          return response;
         }
       }
-      catch(Exception ex)
+      catch (Exception ex)
       {
-        result = ex.Message;
+        logger.LogError($"Ошибка при записи json в бд. {ex.Message}");
+        return null;
       }
-      return result;
+      finally
+      {
+        result.Close();
+      }
+    }
+
+    public string GetXml(string query)
+    {
+      NpgsqlDataReader result = null;
+      try
+      {
+        string resultXml = "";
+        using (var cmd = new NpgsqlCommand(query, conn))
+        {
+          result = cmd.ExecuteReader();
+          logger.LogDebug("Response count = " + result.VisibleFieldCount);
+          if (result.HasRows)
+          {
+            if (result.Read())
+            {
+              resultXml = ConvertFromDBVal<string>(result[0]);
+            }
+            else
+            {
+              logger.LogError("Response is empty");
+            }
+          }
+          else
+          {
+            logger.LogError("Ответ от бд не получен.");
+            return null;
+          }
+        }
+        return resultXml;
+      }
+      catch (Exception ex)
+      {
+        logger.LogError($"Ошибка при получении xml файла. {ex.Message}");
+        return null;
+      }
+      finally
+      {
+        result.Close();
+      }
+    }
+
+    public static T ConvertFromDBVal<T>(object obj)
+    {
+      if (obj == null || obj == DBNull.Value)
+      {
+        return default(T); // returns the default value for the type
+      }
+      else
+      {
+        return (T)obj;
+      }
     }
 
     /// <summary>

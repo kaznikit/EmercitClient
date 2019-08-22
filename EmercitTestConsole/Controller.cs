@@ -1,4 +1,4 @@
-﻿namespace EmercitTestConsole
+﻿namespace EmercitClient
 {
   public class Controller
   {

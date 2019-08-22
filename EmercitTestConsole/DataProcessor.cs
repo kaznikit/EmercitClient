@@ -5,16 +5,20 @@ using MiradaStdSDK.Interfaces;
 using MiradaStdSDK.Models;
 using Newtonsoft.Json;
 using System;
+using System.IO;
+using System.Xml.Serialization;
 
 namespace EmercitClient
 {
   public class DataProcessor : IDataProcessor
   {
     public ILogger Logger { get; }
+    private Working working;
 
-    public DataProcessor(ILogger logger)
+    public DataProcessor(ILogger logger, Working working)
     {
       Logger = logger;
+      this.working = working;
     }
 
     public void ConnectionChanged(ConnectionArgs args)
@@ -23,7 +27,7 @@ namespace EmercitClient
         Logger.LogInformation($"Соединение с контроллером {args.Serial} " +
                       $"установлено [{args.Endpoint}, {args.Protocol.ToString()}]. " +
                       $"Версия ПО: {args.Revision}");
-        
+
       else
         Logger.LogInformation($"Соединение с контроллером {args.Serial} разорвано");
     }
@@ -37,7 +41,7 @@ namespace EmercitClient
       //для остальных контроллеров активируется режим работы по расписанию
       //контроллер подключается каждый час
       Logger.LogInformation($"Вызвана функция получения расписания. {controllerSerial}");
-      return 60;//3600;
+      return (uint)working.sendingTimeout;
     }
 
     public void ProcessData(Archive archive)
@@ -46,8 +50,6 @@ namespace EmercitClient
                                         $"Данные {archive.Data.Count}, " +
                                         $"статусы {archive.States.Count}, " +
                                         $"оповещения: {archive.Notifications.Count}.");
-
-
       try
       {
         //create json string
@@ -57,42 +59,13 @@ namespace EmercitClient
         {
           DatabaseWorker.Instance.Connect();
         }
-        string result = DatabaseWorker.Instance.WriteToDb(Working.write_sqlQuery, json);
-        Logger.LogInformation($"Json writting result = {result}.");
+        Logger.LogInformation($"JSON = {json}");
+        var response = DatabaseWorker.Instance.WriteToDb(Working.write_sqlQuery, json);
+        Logger.LogInformation($"Response from writting query = {response}");
       }
       catch (Exception ex)
       {
         Logger.LogError($"Json parse error. {ex.Message}");
-      }
-
-
-      //обработка данных от контроллера
-      foreach (var data in archive.Data)
-      {
-        Logger.LogInformation($"Данные: адрес {data.Mac}/{data.ExtId}/{data.Point}/{data.Sequence}," +
-                          $"значение {data.Value} " +
-                          $"от {data.Time}. Номер запроса {data.RequestId}.");
-      }
-
-      ////обработка статусов от контроллера
-      ////получение статуса говорит о неработоспособности сигнала
-      ////можно получить несколько разных статусов
-      foreach (var state in archive.States)
-      {
-        Logger.LogInformation($"Получен статус {state.Value} от сигнала" +
-                          $"{state.Mac}/{state.ExtId}/{state.Point}/{state.Sequence}: " +
-                          $"{(state.Enabled ? "активен" : "не активен")}");
-      }
-
-      foreach (var note in archive.Notifications)
-      {
-        if (note.Type == SignalNotificationType.ENOTIFY_ALL_STAT_OFF)
-        {
-          //статус отмены всех статусов с сигналов
-          //все поля в адресе устройства (MAC/ExtId/Point/Sequence) могут быть со значением 0xFF
-          //это означает, что нужно снять статусы по маске со всех устройств,
-          //которые содержат этот подадрес 
-        }
       }
     }
   }
