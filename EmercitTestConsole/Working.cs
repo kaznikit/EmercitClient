@@ -21,6 +21,7 @@ namespace EmercitClient
     public static string get_xml_Query = ConfigurationManager.AppSettings["Get_XML_Query"];
     public static string serviceUrl = ConfigurationManager.AppSettings["ServiceUrl"];
     public static string sendingDataTimeout = ConfigurationManager.AppSettings["SendDataTimeout"];
+    public static string updatesPath = ConfigurationManager.AppSettings["Updates_Path"];
     public int sendingTimeout = 0;
 
     public Logger logger = new Logger();
@@ -49,9 +50,24 @@ namespace EmercitClient
       //Cоздание загрузчика и хранилища обновлений. При добавлении/удалении файлов обновлений в указанную
       //директорию автоматически будет выполенено добавление или удаление данного обновления в хранилище.
       //Это позволяет выполнять добавление файла обновления не перезапуская сервис. 
-      const string updatesPath = @"C:\";
-      var store = new FilesFirmwaresStore(new FirmwaresWatcher(logger, NotifyFilters.FileName, updatesPath),
-          new FileLoader(), logger);
+      //const string updatesPath = @"C:\";
+
+      FilesFirmwaresStore store = null;
+      try
+      {
+        var path = Path.GetDirectoryName(updatesPath);
+        store = new FilesFirmwaresStore(new FirmwaresWatcher(logger, NotifyFilters.FileName, path), new FileLoader(), logger);
+      }
+      catch (Exception ex)
+      {
+        logger.LogError($"Ошибка при обновлении. {ex.Message}. Путь из конфига: {updatesPath}");
+      }
+
+      if (store == null)
+      {
+        updatesPath = @"C:\";
+        store = new FilesFirmwaresStore(new FirmwaresWatcher(logger, NotifyFilters.FileName, updatesPath), new FileLoader(), logger);
+      }
 
       //Создание экземпляра класса сервера (прослушивание всех интерфейсов и TCP порта 4090, размер очереди
       //подключения контроллеров равен 5 
@@ -80,7 +96,7 @@ namespace EmercitClient
       logger.LogInformation("Останов сервера");
 
       exchangeServer.Stop();
-    }   
+    }
 
     private void Callback(object state)
     {
@@ -113,7 +129,7 @@ namespace EmercitClient
           using (TextReader reader = new StringReader(result))
           {
             ier = (ier)serializer.Deserialize(reader);
-           // iers.Add((ier)serializer.Deserialize(reader));
+            // iers.Add((ier)serializer.Deserialize(reader));
           }
           logger.LogInformation($"Xml deserialized successfully.");
           var res = emercitService.newIER(ier);
