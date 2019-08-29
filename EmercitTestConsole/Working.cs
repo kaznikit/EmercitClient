@@ -56,6 +56,7 @@ namespace EmercitClient
       try
       {
         var path = Path.GetDirectoryName(updatesPath);
+        logger.LogInformation("Начало обновления контроллера.");
         store = new FilesFirmwaresStore(new FirmwaresWatcher(logger, NotifyFilters.FileName, path), new FileLoader(), logger);
       }
       catch (Exception ex)
@@ -66,6 +67,7 @@ namespace EmercitClient
       if (store == null)
       {
         updatesPath = @"C:\";
+        logger.LogInformation(@"Взят стандартный путь обновления C:\");
         store = new FilesFirmwaresStore(new FirmwaresWatcher(logger, NotifyFilters.FileName, updatesPath), new FileLoader(), logger);
       }
 
