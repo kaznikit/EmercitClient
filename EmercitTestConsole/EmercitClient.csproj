@@ -116,7 +116,6 @@
     <Compile Include="Controller.cs" />
     <Compile Include="DatabaseWorker.cs" />
     <Compile Include="DataProcessor.cs" />
-    <Compile Include="DataSender.cs" />
     <Compile Include="EmercitAdapterService.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />

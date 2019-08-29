@@ -4,9 +4,7 @@ using MiradaStdSDK.Enums;
 using MiradaStdSDK.Interfaces;
 using MiradaStdSDK.Models;
 using Newtonsoft.Json;
-using System;
-using System.IO;
-using System.Xml.Serialization;
+using System;                  
 
 namespace EmercitClient
 {
@@ -41,7 +39,7 @@ namespace EmercitClient
       //для остальных контроллеров активируется режим работы по расписанию
       //контроллер подключается каждый час
       Logger.LogInformation($"Вызвана функция получения расписания. {controllerSerial}");
-      return (uint)working.sendingTimeout;
+      return (uint)working.reconnectTimeout;
     }
 
     public void ProcessData(Archive archive)
@@ -55,13 +53,12 @@ namespace EmercitClient
         //create json string
         string json = JsonConvert.SerializeObject(archive);
         //write to database
-        if (!DatabaseWorker.Instance.isConnected)
+        if (!DatabaseWorker.GetInstance(working.connectionString, working.logger).isConnected)
         {
-          DatabaseWorker.Instance.Connect();
+          DatabaseWorker.GetInstance(working.connectionString, working.logger).Connect();
         }
-        Logger.LogInformation($"JSON = {json}");
-        var response = DatabaseWorker.Instance.WriteToDb(Working.write_sqlQuery, json);
-        Logger.LogInformation($"Response from writting query = {response}");
+        var response = DatabaseWorker.GetInstance(working.connectionString, working.logger).WriteToDb(Working.write_sqlQuery, json);
+        Logger.LogInformation($"Результат записи в бд = {response}");
       }
       catch (Exception ex)
       {
