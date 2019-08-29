@@ -13,17 +13,22 @@ namespace EmercitClient
     private static NpgsqlConnection conn;
     private Logger logger;
 
-    public static DatabaseWorker Instance { get; } = new DatabaseWorker();
+    private static DatabaseWorker Instance = null;
 
-    /// <summary>
-    /// initialize required parameters
-    /// </summary>
-    /// <param name="connectionString"></param>
-    /// <param name="logger"></param>
-    public void Initialize(string connectionString, Logger logger)
+    private DatabaseWorker(string connectionString, Logger logger)
     {
       this.logger = logger;
       this.connectionString = connectionString;
+      Connect();
+    }
+
+    public static DatabaseWorker GetInstance(string connectionString, Logger logger)
+    {
+      if(Instance == null)
+      {
+        Instance = new DatabaseWorker(connectionString, logger);
+      }
+      return Instance;
     }
 
     /// <summary>
@@ -33,8 +38,14 @@ namespace EmercitClient
     {                                         
       try
       {
-        conn = new NpgsqlConnection(connectionString);
-        conn.Open();
+        if (conn == null)
+        {
+          conn = new NpgsqlConnection(connectionString);
+        }
+        if (conn.State != System.Data.ConnectionState.Open)
+        {
+          conn.Open();
+        }
         if (conn.State == System.Data.ConnectionState.Open)
         {
           conn.TypeMapper.UseJsonNet();
