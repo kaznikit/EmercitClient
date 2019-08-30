@@ -112,30 +112,30 @@ namespace EmercitClient
       }
     }
 
-    public string GetXml(string query)
+    public List<string> GetXml(string query)
     {
       NpgsqlDataReader result = null;
       try
       {
-        string resultXml = "";
+        List<string> resultXml = new List<string>();
         using (var cmd = new NpgsqlCommand(query, conn))
         {
           result = cmd.ExecuteReader();
           logger.LogDebug("Response count = " + result.VisibleFieldCount);
+
           if (result.HasRows)
           {
-            if (result.Read())
+            int k = 0;
+            while (result.Read())
             {
-              resultXml = ConvertFromDBVal<string>(result[0]);
-            }
-            else
-            {
-              logger.LogError("Response is empty");
+              resultXml.Add(ConvertFromDBVal<string>(result[0]));
+              k++;
+              logger.LogInformation($"Added one xml string. k = {k}.");
             }
           }
           else
           {
-            logger.LogError("Ответ от бд не получен.");
+            logger.LogError("Ответ от бд не получен или пустой.");
             return null;
           }
         }

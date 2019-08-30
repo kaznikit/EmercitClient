@@ -35,8 +35,7 @@ namespace EmercitClient
     private List<Controller> controllers;
     private Timer sendingDataTimer;
 
-    private bool isDataSending = false;
-    private bool isRowsRecieving = true;
+    private bool isDataSending = false;  
 
     public void Initialize()
     {
@@ -167,7 +166,6 @@ namespace EmercitClient
     private void CallSendData()
     {
       logger.LogInformation("Вызвана функция отправки данных на сервер.");
-      isRowsRecieving = true;
       Thread thread = new Thread(new ThreadStart(SendDataToService));
       thread.Start();
     }
@@ -180,15 +178,18 @@ namespace EmercitClient
         {
           DatabaseWorker.GetInstance(connectionString, logger).Connect();
         }
-        while (isRowsRecieving)
+        //string result = DatabaseWorker.GetInstance(connectionString, logger).GetXml(get_xml_Query);
+        var result = DatabaseWorker.GetInstance(connectionString, logger).GetXml(get_xml_Query);
+
+        //if (!string.IsNullOrEmpty(result))
+        if (result != null && result.Count != 0)
         {
-          string result = DatabaseWorker.GetInstance(connectionString, logger).GetXml(get_xml_Query);
-          if (!string.IsNullOrEmpty(result))
+          logger.LogInformation($"Got xml string. Result count = {result.Count}");
+          foreach (string s in result)
           {
             XmlSerializer serializer = new XmlSerializer(typeof(ier));
-            logger.LogInformation($"Got xml string.");
             ier ier = new ier();
-            using (TextReader reader = new StringReader(result))
+            using (TextReader reader = new StringReader(s))
             {
               ier = (ier)serializer.Deserialize(reader);
               // iers.Add((ier)serializer.Deserialize(reader));
@@ -198,11 +199,10 @@ namespace EmercitClient
             var res = emercitService.newIER(ier);
             logger.LogInformation($"Data sent to the service. Result = {res}");
           }
-          else
-          {
-            logger.LogError($"Xml string is empty. Result = {result}");
-            isRowsRecieving = false;
-          }
+        }
+        else
+        {
+          logger.LogError($"Xml string is empty. Result = {result}");
         }
       }
       catch (Exception ex)
@@ -212,7 +212,6 @@ namespace EmercitClient
       finally
       {
         isDataSending = false;
-        isRowsRecieving = false;
       }
     }
 
